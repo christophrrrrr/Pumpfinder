@@ -59,6 +59,8 @@ export default function FinancialsPanel({ f }: { f: Fundamentals }) {
         />
         <Stat label="Cash" value={formatCompact(f.totalCash, cur)} />
         <Stat label="Debt" value={formatCompact(f.totalDebt, cur)} />
+        <Stat label="Inst. Owned" value={formatPct(f.institutionsPercentHeld)} />
+        <Stat label="Insider Owned" value={formatPct(f.insidersPercentHeld)} />
         <Stat label="Country" value={f.country ?? "—"} />
       </div>
       {(f.sector || f.industry) && (

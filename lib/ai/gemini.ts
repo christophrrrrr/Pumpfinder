@@ -40,6 +40,7 @@ function buildFactSheet(input: AiInput): string {
       `Market cap: ${formatCompact(f.marketCap)} | Revenue: ${formatCompact(f.totalRevenue)} | Rev growth: ${formatPct(f.revenueGrowth, { sign: true })}`,
       `Profitable: ${f.isProfitable == null ? "?" : f.isProfitable ? "yes" : "no"} | Profit margin: ${formatPct(f.profitMargins, { sign: true })}`,
       `Free cash flow: ${formatCompact(f.freeCashflow)} | Cash: ${formatCompact(f.totalCash)} | Debt: ${formatCompact(f.totalDebt)}`,
+      `Institutional ownership: ${formatPct(f.institutionsPercentHeld)} | Insider ownership: ${formatPct(f.insidersPercentHeld)}`,
     );
   } else {
     lines.push("Financials: unavailable.");

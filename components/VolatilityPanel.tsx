@@ -1,12 +1,13 @@
 import type { VolatilityStats } from "@/lib/types";
 import { formatCompact, formatDate, formatPct } from "@/lib/format";
 
-function volLabel(annualized: number | null): { text: string; cls: string } | null {
-  if (annualized == null) return null;
-  if (annualized >= 1.0) return { text: "Extreme", cls: "bg-red-100 text-red-700" };
-  if (annualized >= 0.6) return { text: "Very High", cls: "bg-orange-100 text-orange-700" };
-  if (annualized >= 0.35) return { text: "High", cls: "bg-amber-100 text-amber-700" };
-  if (annualized >= 0.2) return { text: "Moderate", cls: "bg-zinc-100 text-zinc-700" };
+// Rating is driven by the biggest single-day move (either direction) over the
+// lookback window: how wild this name can get in one day.
+function volLabel(peakMove: number | null): { text: string; cls: string } | null {
+  if (peakMove == null) return null;
+  if (peakMove > 1.0) return { text: "Extreme", cls: "bg-red-100 text-red-700" };
+  if (peakMove > 0.3) return { text: "High", cls: "bg-orange-100 text-orange-700" };
+  if (peakMove > 0.1) return { text: "Moderate", cls: "bg-amber-100 text-amber-700" };
   return { text: "Low", cls: "bg-emerald-100 text-emerald-700" };
 }
 
@@ -17,13 +18,18 @@ export default function VolatilityPanel({
   v: VolatilityStats;
   symbol: string;
 }) {
-  const label = volLabel(v.annualizedVol);
+  const moves = [v.maxGain, v.maxDrop].filter((x): x is number => x != null).map(Math.abs);
+  const peakMove = moves.length > 0 ? Math.max(...moves) : null;
+  const label = volLabel(peakMove);
   return (
     <section>
       <div className="mb-2 flex items-center gap-2">
         <h3 className="text-sm font-semibold text-zinc-700">Volatility & Behavior</h3>
         {label && (
-          <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${label.cls}`}>
+          <span
+            className={`rounded-full px-2 py-0.5 text-xs font-medium ${label.cls}`}
+            title={`Biggest single-day move in the past year: ${formatPct(peakMove)}`}
+          >
             {label.text}
           </span>
         )}

@@ -23,6 +23,8 @@ export interface Fundamentals {
   totalCash: number | null;
   totalDebt: number | null;
   sharesOutstanding: number | null;
+  institutionsPercentHeld: number | null; // fraction
+  insidersPercentHeld: number | null; // fraction
   isProfitable: boolean | null;
 }
 

@@ -51,6 +51,8 @@ export async function getFundamentals(symbol: string): Promise<Fundamentals> {
     totalCash: fin?.totalCash ?? null,
     totalDebt: fin?.totalDebt ?? null,
     sharesOutstanding: stats?.sharesOutstanding ?? null,
+    institutionsPercentHeld: stats?.heldPercentInstitutions ?? null,
+    insidersPercentHeld: stats?.heldPercentInsiders ?? null,
     isProfitable,
   };
 }

@@ -1,6 +1,7 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { env } from "@/lib/env";
 import { formatCompact, formatPct } from "@/lib/format";
+import { financialHealthScore, volatilityScore } from "@/lib/analysis/scores";
 import type {
   AiSummary,
   Fundamentals,
@@ -80,7 +81,19 @@ function buildFactSheet(input: AiInput): string {
   return lines.join("\n");
 }
 
-function buildPrompt(input: AiInput, includeVerdict: boolean): string {
+function buildPrompt(
+  input: AiInput,
+  includeVerdict: boolean,
+  scores: { vol: number | null; fin: number | null },
+): string {
+  const volTxt =
+    scores.vol != null
+      ? `${scores.vol} (PRECOMPUTED from price action — you MUST use exactly this value)`
+      : "estimate an integer 0-10 yourself";
+  const finTxt =
+    scores.fin != null
+      ? `${scores.fin} (PRECOMPUTED from the financials — you MUST use exactly this value)`
+      : "estimate an integer 0-10 yourself";
   return [
     "You are a sharp, skeptical analyst helping a short-term trader quickly decide whether a volatile small-cap stock is worth trading TODAY.",
     "Base everything ONLY on the facts below. Be concise and concrete. Do not give financial advice or tell the user to buy/sell.",
@@ -90,7 +103,7 @@ function buildPrompt(input: AiInput, includeVerdict: boolean): string {
     "- whyMoved: 1-2 sentences on the most likely reason the stock is moving, citing the specific catalyst.",
     "- meaningfulVsHype: 1-2 sentences judging whether the catalyst looks substantive (real revenue/contracts/approvals) or like temporary hype/promotion. Flag dilution risk if there are recent offerings (S-1/424B) or shelf registrations.",
     includeVerdict
-      ? "- catalystStrength, financialHealth, volatilityPotential: integers 0-10. overallLabel: one of 'Strong Candidate', 'Likely Hype', 'Neutral'. rationale: one short sentence justifying the label."
+      ? `- catalystStrength: integer 0-10 — how strong and FRESH the news catalyst is (a real new contract/approval/earnings = high; nothing new or just hype = low).\n- volatilityPotential: ${volTxt}.\n- financialHealth: ${finTxt}.\n- overallLabel: one of 'Strong Candidate', 'Likely Hype', 'Neutral'. rationale: one short sentence. Base the label and rationale on the catalyst together with the volatility and financial-health scores above.`
       : "",
     "",
     "FACTS:",
@@ -159,11 +172,15 @@ export async function generateAiSummary(
     );
   }
 
+  // Deterministic scores — computed in code, not guessed by the model.
+  const volScore = volatilityScore(input.volatility);
+  const finScore = financialHealthScore(input.fundamentals);
+
   let response;
   try {
     response = await ai.models.generateContent({
       model: env.geminiModel,
-      contents: buildPrompt(input, includeVerdict),
+      contents: buildPrompt(input, includeVerdict, { vol: volScore, fin: finScore }),
       config: {
         responseMimeType: "application/json",
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -203,8 +220,9 @@ export async function generateAiSummary(
   if (includeVerdict) {
     verdict = {
       catalystStrength: clampScore(parsed.catalystStrength),
-      financialHealth: clampScore(parsed.financialHealth),
-      volatilityPotential: clampScore(parsed.volatilityPotential),
+      // Authoritative deterministic scores; fall back to the model only if uncomputable.
+      financialHealth: finScore ?? clampScore(parsed.financialHealth),
+      volatilityPotential: volScore ?? clampScore(parsed.volatilityPotential),
       overallLabel: normalizeLabel(parsed.overallLabel),
       rationale: String(parsed.rationale ?? ""),
     };

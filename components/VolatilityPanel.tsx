@@ -1,5 +1,6 @@
 import type { VolatilityStats } from "@/lib/types";
 import { formatCompact, formatDate, formatPct } from "@/lib/format";
+import { peakSingleDayMove } from "@/lib/analysis/scores";
 
 // Rating is driven by the biggest single-day move (either direction) over the
 // lookback window: how wild this name can get in one day.
@@ -18,8 +19,7 @@ export default function VolatilityPanel({
   v: VolatilityStats;
   symbol: string;
 }) {
-  const moves = [v.maxGain, v.maxDrop].filter((x): x is number => x != null).map(Math.abs);
-  const peakMove = moves.length > 0 ? Math.max(...moves) : null;
+  const peakMove = peakSingleDayMove(v);
   const label = volLabel(peakMove);
   return (
     <section>

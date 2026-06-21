@@ -32,7 +32,13 @@ function sqlClient() {
     // prepare:false → compatible with Supabase's transaction pooler.
     // ssl:"require" → encrypt without strict CA verification (also avoids the
     // local TLS-inspection proxy tripping cert checks).
-    g.__jpSql = postgres(env.databaseUrl, { prepare: false, ssl: "require" });
+    g.__jpSql = postgres(env.databaseUrl, {
+      prepare: false, // compatible with Supabase transaction pooler
+      ssl: "require",
+      connect_timeout: 10, // fail fast instead of hanging a page render
+      idle_timeout: 20,
+      max: 3,
+    });
   }
   return g.__jpSql;
 }

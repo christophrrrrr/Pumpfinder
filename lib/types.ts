@@ -3,6 +3,11 @@
  * fractions (0.05 = 5%) unless the name ends in "Pct" and is documented otherwise.
  */
 
+export interface InstitutionHolder {
+  name: string;
+  pctHeld: number | null; // fraction of shares held by this institution
+}
+
 export interface Fundamentals {
   symbol: string;
   name: string | null;
@@ -25,6 +30,7 @@ export interface Fundamentals {
   sharesOutstanding: number | null;
   institutionsPercentHeld: number | null; // fraction
   insidersPercentHeld: number | null; // fraction
+  topInstitutions: InstitutionHolder[]; // largest institutional holders by name
   isProfitable: boolean | null;
 }
 

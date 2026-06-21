@@ -17,6 +17,7 @@ export async function getFundamentals(symbol: string): Promise<Fundamentals> {
       "assetProfile",
       "financialData",
       "defaultKeyStatistics",
+      "institutionOwnership",
     ],
   });
 
@@ -24,6 +25,11 @@ export async function getFundamentals(symbol: string): Promise<Fundamentals> {
   const profile = qs.assetProfile;
   const fin = qs.financialData;
   const stats = qs.defaultKeyStatistics;
+
+  const topInstitutions = (qs.institutionOwnership?.ownershipList ?? [])
+    .filter((o) => o.organization)
+    .slice(0, 6)
+    .map((o) => ({ name: o.organization as string, pctHeld: o.pctHeld ?? null }));
 
   const netIncome = stats?.netIncomeToCommon ?? null;
   const profitMargins = fin?.profitMargins ?? null;
@@ -53,6 +59,7 @@ export async function getFundamentals(symbol: string): Promise<Fundamentals> {
     sharesOutstanding: stats?.sharesOutstanding ?? null,
     institutionsPercentHeld: stats?.heldPercentInstitutions ?? null,
     insidersPercentHeld: stats?.heldPercentInsiders ?? null,
+    topInstitutions,
     isProfitable,
   };
 }

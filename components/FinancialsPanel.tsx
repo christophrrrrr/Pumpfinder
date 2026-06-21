@@ -63,8 +63,17 @@ export default function FinancialsPanel({ f }: { f: Fundamentals }) {
         <Stat label="Insider Owned" value={formatPct(f.insidersPercentHeld)} />
         <Stat label="Country" value={f.country ?? "—"} />
       </div>
+      {f.topInstitutions.length > 0 && (
+        <p className="mt-3 text-xs text-zinc-500">
+          <span className="text-zinc-400">Top holders: </span>
+          {f.topInstitutions
+            .slice(0, 4)
+            .map((h) => `${h.name}${h.pctHeld != null ? ` ${formatPct(h.pctHeld)}` : ""}`)
+            .join(" · ")}
+        </p>
+      )}
       {(f.sector || f.industry) && (
-        <p className="mt-3 text-xs text-zinc-400">
+        <p className="mt-2 text-xs text-zinc-400">
           {[f.sector, f.industry].filter(Boolean).join(" · ")}
         </p>
       )}

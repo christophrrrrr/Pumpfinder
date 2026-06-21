@@ -23,6 +23,26 @@ you can size up a short-term trade in under five minutes.
   source. Plus a TradingView chart link. (Falls back to raw headline links when
   AI is off.)
 
+## Screenshots
+
+The dashboard — paste tickers, get a briefing card per stock with an AI verdict:
+
+![Dashboard with briefing cards](screenshots/screenshot1.png)
+
+A closer look — AI Verdict scores, the AI "take" (why it moved / meaningful vs.
+hype), and a news digest where every bullet links to its source:
+
+![Card detail: verdict, AI take, sourced news bullets](screenshots/screenshot4.png)
+
+Financial health, volatility behavior (with a TradingView link), and the sourced
+news digest:
+
+![Financials, volatility and news sections](screenshots/screenshot2.png)
+
+History — every briefing you've generated, saved:
+
+![History page](screenshots/screenshot3.png)
+
 ## Tech
 
 Next.js (App Router) + Tailwind, deployed on Vercel's free tier. Data: the free

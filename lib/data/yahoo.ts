@@ -26,10 +26,21 @@ export async function getFundamentals(symbol: string): Promise<Fundamentals> {
   const fin = qs.financialData;
   const stats = qs.defaultKeyStatistics;
 
+  // Yahoo's per-holder `pctHeld` is divided by a STALE share count, so it's
+  // wildly inflated for recently-diluted stocks (can exceed 100% or the
+  // aggregate). Recompute from the holder's share position over the CURRENT
+  // shares outstanding for a consistent, sane figure.
+  const sharesOut = stats?.sharesOutstanding ?? null;
   const topInstitutions = (qs.institutionOwnership?.ownershipList ?? [])
     .filter((o) => o.organization)
     .slice(0, 6)
-    .map((o) => ({ name: o.organization as string, pctHeld: o.pctHeld ?? null }));
+    .map((o) => ({
+      name: o.organization as string,
+      pctHeld:
+        sharesOut && sharesOut > 0 && o.position != null
+          ? Math.min(o.position / sharesOut, 1)
+          : o.pctHeld ?? null,
+    }));
 
   const netIncome = stats?.netIncomeToCommon ?? null;
   const profitMargins = fin?.profitMargins ?? null;

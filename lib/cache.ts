@@ -35,8 +35,10 @@ export async function getBriefing(
   const data = await buildBriefing(symbol, opts);
   mem.set(key, { at: Date.now(), data });
 
-  // Persist for the History page (no-op when no DATABASE_URL is configured).
-  void saveLookup(data).catch(() => {});
+  // Persist for the History page. Must be AWAITED: on serverless (Vercel) the
+  // function freezes once the response is sent, so a fire-and-forget write would
+  // never complete. saveLookup catches its own errors and won't throw.
+  await saveLookup(data);
 
   return data;
 }

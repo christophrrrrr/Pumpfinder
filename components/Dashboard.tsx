@@ -40,19 +40,34 @@ export default function Dashboard({ aiEnabled }: { aiEnabled: boolean }) {
   const [results, setResults] = useState<Result[]>([]);
   const [running, setRunning] = useState(false);
 
-  // Remember the trader's input + verdict preference between visits.
+  // Remember the trader's input + verdict preference, and the generated cards,
+  // so navigating to History and back doesn't wipe the dashboard.
   useEffect(() => {
-    // One-time hydration of persisted preferences from the browser store.
+    // One-time hydration of persisted state from the browser store.
     const savedInput = localStorage.getItem("jp_input");
     const savedVerdict = localStorage.getItem("jp_verdict");
+    const savedResults = sessionStorage.getItem("jp_results");
     /* eslint-disable react-hooks/set-state-in-effect */
     if (savedInput) setInput(savedInput);
     if (savedVerdict != null) setVerdict(savedVerdict === "1");
+    if (savedResults) {
+      try {
+        const parsed = JSON.parse(savedResults) as Result[];
+        if (Array.isArray(parsed) && parsed.length > 0) setResults(parsed);
+      } catch {
+        // ignore corrupt cache
+      }
+    }
     /* eslint-enable react-hooks/set-state-in-effect */
   }, []);
   useEffect(() => {
     localStorage.setItem("jp_verdict", verdict ? "1" : "0");
   }, [verdict]);
+  useEffect(() => {
+    // Persist only finished cards; keep prior ones while a new run is loading.
+    const done = results.filter((r) => r.status === "done");
+    if (done.length > 0) sessionStorage.setItem("jp_results", JSON.stringify(done));
+  }, [results]);
 
   async function fetchOne(symbol: string) {
     try {

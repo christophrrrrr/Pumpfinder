@@ -1,36 +1,75 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Pump
 
-## Getting Started
+A fast daily **stock news-briefing** web app. Paste in the tickers you got from
+your investor group and instantly get a scannable AI card per stock — catalyst
+summary, financial health, volatility behavior, and an optional AI verdict — so
+you can size up a short-term trade in under five minutes.
 
-First, run the development server:
+> Informational only — **not financial advice**. Data comes from free public
+> feeds and may be delayed or incomplete. There is **no trade execution**.
+
+## What each card shows
+
+- **AI Catalyst Summary** (Gemini) — why the stock is moving, and whether the
+  catalyst looks meaningful or like hype. Optional **AI Verdict** scores
+  (Catalyst / Financials / Volatility, 0–10) with a Strong Candidate / Likely
+  Hype / Neutral label. Toggle it on/off.
+- **Financial Health** — market cap, revenue + growth, profitability, free cash
+  flow, cash, debt, country.
+- **Volatility & Behavior** — annualized volatility, typical daily move, recent
+  big single-day moves, and volume-spike detection.
+- **News & Catalysts** — an AI bullet-point digest of the recent news (Yahoo +
+  Google News) and SEC filings (8-K / 10-Q / 10-K), with each point linked to its
+  source. Plus a TradingView chart link. (Falls back to raw headline links when
+  AI is off.)
+
+## Tech
+
+Next.js (App Router) + Tailwind, deployed on Vercel's free tier. Data: the free
+`yahoo-finance2` library, Google News RSS, and SEC EDGAR. AI: Google Gemini
+(free tier). Optional: Supabase/Neon Postgres for persistent history.
+
+## Quick start (local)
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+cp .env.example .env.local      # then edit .env.local (see below)
+npm run dev                     # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Log in with the `APP_PASSWORD` you set. The app runs with only `APP_PASSWORD` +
+`SESSION_SECRET`; everything else is optional and unlocks extra features.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Environment variables (`.env.local`)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Variable | Required | What it enables |
+| --- | --- | --- |
+| `APP_PASSWORD` | yes | The single login password. |
+| `SESSION_SECRET` | yes | Cookie encryption (>=32 chars). Generate: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` |
+| `GEMINI_API_KEY` | no | AI summary + verdict. Free key: <https://aistudio.google.com/apikey> |
+| `GEMINI_MODEL` | no | Defaults to `gemini-2.5-flash`. |
+| `DATABASE_URL` | no | Persistent history. A Postgres **connection string** (Supabase/Neon free tier), e.g. `postgresql://…pooler.supabase.com:6543/postgres` — not a Supabase API key. Without it, history is in-memory and resets on restart. |
 
-## Learn More
+> **Note for this Windows machine:** a TLS-inspecting security tool is installed,
+> so Node can't verify Google/SEC certificates with its bundled CA list. The
+> `dev` script already passes `--use-system-ca` to fix this locally. Hosted
+> environments (Vercel) don't need it.
 
-To learn more about Next.js, take a look at the following resources:
+## Deploy to Vercel (free)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. Push this repo to GitHub.
+2. Import it at <https://vercel.com/new> (it auto-detects Next.js).
+3. Add the environment variables above in the Vercel project settings.
+4. For persistent history, add a Postgres database from the Vercel
+   Storage/Marketplace (Neon) — it sets `DATABASE_URL` for you.
+5. Deploy. Share the URL with your mom; she logs in with `APP_PASSWORD`.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Notes & limitations
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Not real-time: this is a research/news briefing tool, **not** premarket/live
+  quotes (by design — that keeps it free).
+- Free data sources can be rate-limited or occasionally stale; each card section
+  fails softly (shown as a small notice) rather than breaking the page.
+- Gemini's free tier has rate limits and may use prompts to improve Google's
+  models (only public stock info is sent). Lookups are cached ~30 min to stay
+  within limits.

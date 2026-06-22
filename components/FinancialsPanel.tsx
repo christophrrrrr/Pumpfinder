@@ -1,5 +1,5 @@
 import type { Fundamentals } from "@/lib/types";
-import { formatCompact, formatPct } from "@/lib/format";
+import { formatCompact, formatMonthYear, formatPct } from "@/lib/format";
 
 function Stat({
   label,
@@ -65,7 +65,10 @@ export default function FinancialsPanel({ f }: { f: Fundamentals }) {
       </div>
       {f.topInstitutions.length > 0 && (
         <p className="mt-3 text-xs text-zinc-500">
-          <span className="text-zinc-400">Top holders: </span>
+          <span className="text-zinc-400">
+            Top holders
+            {f.institutionsReportDate ? ` (as of ${formatMonthYear(f.institutionsReportDate)})` : ""}:{" "}
+          </span>
           {f.topInstitutions
             .slice(0, 4)
             .map((h) => `${h.name}${h.pctHeld != null ? ` ${formatPct(h.pctHeld)}` : ""}`)

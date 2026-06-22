@@ -31,7 +31,8 @@ export async function getFundamentals(symbol: string): Promise<Fundamentals> {
   // aggregate). Recompute from the holder's share position over the CURRENT
   // shares outstanding for a consistent, sane figure.
   const sharesOut = stats?.sharesOutstanding ?? null;
-  const topInstitutions = (qs.institutionOwnership?.ownershipList ?? [])
+  const ownershipList = qs.institutionOwnership?.ownershipList ?? [];
+  const topInstitutions = ownershipList
     .filter((o) => o.organization)
     .slice(0, 6)
     .map((o) => ({
@@ -41,6 +42,8 @@ export async function getFundamentals(symbol: string): Promise<Fundamentals> {
           ? Math.min(o.position / sharesOut, 1)
           : o.pctHeld ?? null,
     }));
+  const firstReport = ownershipList[0]?.reportDate;
+  const institutionsReportDate = firstReport ? new Date(firstReport).toISOString() : null;
 
   const netIncome = stats?.netIncomeToCommon ?? null;
   const revenue = fin?.totalRevenue ?? null;
@@ -77,6 +80,7 @@ export async function getFundamentals(symbol: string): Promise<Fundamentals> {
     institutionsPercentHeld: stats?.heldPercentInstitutions ?? null,
     insidersPercentHeld: stats?.heldPercentInsiders ?? null,
     topInstitutions,
+    institutionsReportDate,
     isProfitable,
   };
 }

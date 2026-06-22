@@ -31,6 +31,7 @@ export interface Fundamentals {
   institutionsPercentHeld: number | null; // fraction
   insidersPercentHeld: number | null; // fraction
   topInstitutions: InstitutionHolder[]; // largest institutional holders by name
+  institutionsReportDate: string | null; // ISO; 13F quarter the holdings are "as of"
   isProfitable: boolean | null;
 }
 

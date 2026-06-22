@@ -43,7 +43,13 @@ export async function getFundamentals(symbol: string): Promise<Fundamentals> {
     }));
 
   const netIncome = stats?.netIncomeToCommon ?? null;
-  const profitMargins = fin?.profitMargins ?? null;
+  const revenue = fin?.totalRevenue ?? null;
+  // Yahoo returns a bogus 0 profit margin for some deeply-unprofitable names;
+  // recompute from net income / revenue so we never show a false "0.0%".
+  let profitMargins = fin?.profitMargins ?? null;
+  if ((profitMargins == null || profitMargins === 0) && netIncome != null && revenue && revenue > 0) {
+    profitMargins = netIncome / revenue;
+  }
   let isProfitable: boolean | null = null;
   if (netIncome != null) isProfitable = netIncome > 0;
   else if (profitMargins != null) isProfitable = profitMargins > 0;
@@ -88,6 +94,7 @@ export async function getPriceHistory(symbol: string, days = 400): Promise<Price
       high: q.high ?? q.close!,
       low: q.low ?? q.close!,
       close: q.close!,
+      adjclose: q.adjclose ?? q.close!,
       volume: q.volume ?? 0,
     }));
 }

@@ -37,12 +37,13 @@ export function computeVolatility(bars: PriceBar[]): VolatilityStats {
   };
   if (bars.length < 2) return empty;
 
-  // Close-to-close daily returns.
+  // Close-to-close daily returns, using split/dividend-adjusted prices so a
+  // (reverse) split is never mistaken for a real single-day move.
   const returns: number[] = [];
   const bigMoves: BigMove[] = [];
   for (let i = 1; i < bars.length; i++) {
-    const prev = bars[i - 1].close;
-    const cur = bars[i].close;
+    const prev = bars[i - 1].adjclose;
+    const cur = bars[i].adjclose;
     if (!prev) continue;
     const r = cur / prev - 1;
     returns.push(r);

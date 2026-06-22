@@ -40,6 +40,7 @@ export interface PriceBar {
   high: number;
   low: number;
   close: number;
+  adjclose: number; // split/dividend-adjusted — use for returns/volatility
   volume: number;
 }
 
